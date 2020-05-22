@@ -1,20 +1,16 @@
-- name: Configure instance(s)
-  hosts: target
-  remote_user: "{{ deploy_user_name }}" 
-  become: true
+- hosts: target
   tasks:
-
       - name: Install aptitude using apt
         apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+        
+      - name: Install required system packages
+        apt: name={{ item }} state=latest update_cache=yes
+        loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'gnupg2', 'software-properties-common', 'python3-pip', 'virtualenv', 'python3-setuptools']
 
       - name: Add Docker GPG key
         apt_key:
           url: https://download.docker.com/linux/ubuntu/gpg
           state: present
-
-      - name: Install required system packages
-        apt: name={{ item }} state=latest update_cache=yes
-        loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'python3-pip', 'virtualenv', 'python3-setuptools']
 
       - name: Add Docker APT repository
         apt_repository:
@@ -30,7 +26,6 @@
       - name: Update apt and install containerd.io
         apt: update_cache=yes name=containerd.io state=latest
 
-
       - name: Install Docker Module for Python
         pip:
           name: docker
@@ -38,4 +33,3 @@
       - name: Install Docker-compose
         shell: curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose && ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
         ignore_errors: yes
-
