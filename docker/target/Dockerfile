@@ -16,5 +16,4 @@ RUN echo "root:" | chpasswd
 
 EXPOSE 22
 
-# sshdを起動
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/sbin/init"]
