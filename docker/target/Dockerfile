@@ -1,19 +1,19 @@
-# Amazon EC2
-FROM amazonlinux:latest
+FROM ubuntu:18.04
 
-# yumでOpenSSｈサーバをインストールする
-RUN yum -y install openssh-server
+RUN apt-get update && \
+    apt-get install -y openssh-server
+RUN mkdir /run/sshd
+RUN sed -ri 's/^#?PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config
 
-# sshd起動時に公開鍵が必要なため、作成
-RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa
-RUN ssh-keygen -f /etc/ssh/ssh_host_ecdsa_key -N '' -t ecdsa
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
-# rootでログインできるようにする
-RUN sed -ri 's/^#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
 
 # rootのパスワードを指定
-RUN echo "root:" | chpasswd
+RUN echo "root:root" | chpasswd
 
 EXPOSE 22
 
-CMD ["/sbin/init"]
+CMD ["/usr/sbin/sshd", "-D"]
